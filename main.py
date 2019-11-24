@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 from nltk.corpus import stopwords
 sw = set(stopwords.words('english'))
-
+docLength={}
 dict={}
 start_url = "https://www.concordia.ca/research.html"
 base = "https://www.concordia.ca"
@@ -27,7 +27,6 @@ def getAllLinks(url,depth):
                     getAllLinks(temp,depth-1)
 
 
-
 def extractText(url):
     content=requests.get(url).text
     soup = BeautifulSoup(content,'html.parser')
@@ -36,6 +35,7 @@ def extractText(url):
     raw = soup.get_text()
     raw = re.sub('\d+','',raw)
     raw = re.findall(r'\w+',raw)
+    docLength[url]=len(raw)
     invertIndex(raw,url)
 
 
@@ -44,17 +44,19 @@ def invertIndex(text_list,url):
         if term.lower() in sw:
             continue
         if dict.get(term.lower()) != None:
-            if url not in dict[term.lower()]:
-                dict[term.lower()].append(url)
-
+            dict[term.lower()].append(url)
         else:
             dict[term.lower()] = [url]
 
 def download():
     for item in sorted(dict):
         print (item , ":",dict[item])
-    f = open('disk.json','w')
-    json.dump(dict,f)
+    f = open('disk2.json','w')
+    json.dump(dict,f,indent=4)
+    f.close()
+    f = open('doc_length.json','w')
+    json.dump(docLength,f,indent=4)
+    f.close()
     return 0
 
 if __name__ == '__main__':
